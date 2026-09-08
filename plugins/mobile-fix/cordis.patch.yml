@@ -1,0 +1,7 @@
+# Mount the mobile stylesheet plugin in a DSH profile.
+
+- insert:
+    - id: mobile-fix
+      name: 'dsh-mobile-fix'
+      config:
+        enabled: true

@@ -1,0 +1,14 @@
+{
+  "name": "dsh-mobile-control",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Loopback proxy and mobile UI plugin for DeepSeek Harness",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/proxy.mjs",
+    "check": "node --check src/proxy.mjs && node --check plugins/mobile-fix/index.mjs"
+  }
+}

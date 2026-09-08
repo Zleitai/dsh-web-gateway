@@ -1,0 +1,16 @@
+node_modules/
+coverage/
+dist/
+*.log
+*.bak
+*.tmp
+.env
+.env.*
+!.env.example
+.dsh/
+.cloudflared/
+.credentials.*
+*.pem
+*.key
+.DS_Store
+Thumbs.db
