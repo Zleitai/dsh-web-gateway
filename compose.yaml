@@ -1,0 +1,39 @@
+services:
+  relay:
+    build:
+      context: .
+      target: relay
+    restart: unless-stopped
+    environment:
+      MOBILE_ORIGINS: ${MOBILE_ORIGIN:-http://localhost:8080}
+      RELAY_INVITE: ${RELAY_INVITE:-}
+      RELAY_INVITE_USES: ${RELAY_INVITE_USES:-20}
+      RELAY_MAX_HOSTS: ${RELAY_MAX_HOSTS:-100}
+      RELAY_MAX_CONNECTIONS: ${RELAY_MAX_CONNECTIONS:-500}
+      RELAY_MAX_PEERS: ${RELAY_MAX_PEERS:-8}
+      RELAY_MESSAGES_PER_MINUTE: ${RELAY_MESSAGES_PER_MINUTE:-6000}
+      RELAY_MAX_BUFFERED_BYTES: ${RELAY_MAX_BUFFERED_BYTES:-1048576}
+    volumes:
+      - relay-data:/data
+    expose:
+      - "4090"
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:8080}
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - relay
+volumes:
+  relay-data:
+  caddy-data:
+  caddy-config:

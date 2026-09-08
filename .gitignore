@@ -14,3 +14,8 @@ dist/
 *.key
 .DS_Store
 Thumbs.db
+test-results/
+playwright-report/
+data/
+artifacts/
+tests/wire-client.mjs
