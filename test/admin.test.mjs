@@ -4,7 +4,7 @@ import { startAdmin } from '../src/admin.mjs';
 
 test('admin serves local no-store status and QR without token in health', async () => {
   const token = 'test_secret_token';
-  const admin = await startAdmin({ port: 0, publicUrl: `https://dsh.example.com/?token=${token}`, version: '0.1.5-rc.1' });
+  const admin = await startAdmin({ port: 0, publicUrl: `https://dsh.example.com/#token=${token}`, version: '0.1.5-rc.1' });
   try {
     const page = await fetch(admin.url);
     assert.equal(page.status, 200);

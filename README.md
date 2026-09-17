@@ -9,7 +9,7 @@ DeepSeek Harness Web 界面。
 ## 当前状态
 
 - 生产中的 `dsh.luisnode.com` 暂时继续使用旧网站代理，切换 V2 前不改动。
-- V2 尚未接管任何域名，也不会自动启动、停止或重启现有 DSH 与隧道。
+- V2 正在独立测试地址 `dsh-v2.luisnode.com` 验收，尚未接管生产地址。
 - 当前适配目标为 DSH `0.1.5-rc.1` 及其公开的 `--trusted-host` 接入方式。
 - 新版本会先在独立测试地址验收，再切换现有域名。
 
@@ -29,8 +29,10 @@ pnpm install:layout
 pnpm start -- --public-origin https://测试域名 --workspace C:\绝对\工作区路径
 ```
 
-默认 DSH 端口为 `3090`，本机管理页为 `http://127.0.0.1:3091/`。
-测试域名必须已经通过受保护的出站隧道指向 `127.0.0.1:3090`。
+默认公网入口端口为 `3090`，内部 DSH 端口为 `3092`，本机管理页为 `http://127.0.0.1:3091/`。
+测试域名必须已经通过受保护的出站隧道指向 `127.0.0.1:3090`。二维码把 DSH
+启动凭据放在 URL fragment 中；通过入口认证后，本机网关才把它兑换为 DSH 的签名 Cookie，
+避免凭据进入公网请求地址和访问日志。
 连接器只验证 DSH `0.1.5-rc.1`，检测到其他版本会明确退出。
 样式插件可用 `pnpm remove:layout` 从 web profile 移除；移除或安装后应在没有运行中任务时重启 DSH。
 独立 hostname、Cloudflare Access 与回退步骤见 [docs/STAGING.md](docs/STAGING.md)。

@@ -32,7 +32,9 @@ pnpm start -- --public-origin https://<test-hostname> --workspace C:\<workspace>
 ```
 
 启动成功后只在本机打开 `http://127.0.0.1:3091/`。该页面显示认证二维码；二维码包含
-当前 DSH 进程的登录凭据，不应截图、转发或写入工单。
+当前 DSH 进程的登录凭据，不应截图、转发或写入工单。凭据保存在二维码 URL 的
+fragment 中，Cloudflare 请求和普通访问日志不会收到它；登录完成后由本机入口兑换为
+DSH 的签名 Cookie。
 
 ## 验收与回退
 

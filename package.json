@@ -1,6 +1,6 @@
 {
   "name": "dsh-web-gateway",
-  "version": "0.3.0-dev.1",
+  "version": "0.3.0-dev.2",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.19.0",

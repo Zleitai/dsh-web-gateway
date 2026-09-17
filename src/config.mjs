@@ -1,7 +1,7 @@
 import { existsSync, statSync } from 'node:fs';
 import { isAbsolute, resolve } from 'node:path';
 
-const valueFlags = new Set(['public-origin', 'workspace', 'port', 'admin-port', 'dsh-home', 'dsh-launcher']);
+const valueFlags = new Set(['public-origin', 'workspace', 'port', 'dsh-port', 'admin-port', 'dsh-home', 'dsh-launcher']);
 
 export function parseArgs(argv, env = process.env) {
   const values = new Map();
@@ -31,6 +31,7 @@ export function parseArgs(argv, env = process.env) {
     dshHome,
     dshLauncher,
     port: integer(values.get('port') ?? env.DSH_GATEWAY_PORT ?? '3090', 'port', true),
+    dshPort: integer(values.get('dsh-port') ?? env.DSH_GATEWAY_DSH_PORT ?? '3092', 'dsh-port', true),
     adminPort: integer(values.get('admin-port') ?? env.DSH_GATEWAY_ADMIN_PORT ?? '3091', 'admin-port', false),
   };
 }

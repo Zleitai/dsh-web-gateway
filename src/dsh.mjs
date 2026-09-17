@@ -36,23 +36,10 @@ export function inspectDsh(launcher) {
   return { version };
 }
 
-export function publicAuthenticationUrl(localUrl, publicOrigin) {
-  const local = new URL(localUrl);
-  if (local.protocol !== 'http:' || local.username || local.password || local.hash ||
-      !['127.0.0.1', 'localhost', '[::1]'].includes(local.hostname) || local.pathname !== '/' ||
-      local.searchParams.getAll('token').length !== 1 || [...local.searchParams.keys()].some(key => key !== 'token')) {
-    throw new Error('DSH returned an unexpected authentication URL');
-  }
-  const target = new URL(publicOrigin);
-  target.pathname = '/';
-  target.search = local.search;
-  return target.href;
-}
-
 export function startDsh(config, options = {}) {
   const launcher = resolveDshLauncher(config.dshLauncher);
   const inspected = inspectDsh(launcher);
-  const args = [launcher, '--profile', 'web', '--host', '127.0.0.1', '--port', String(config.port), '--no-open', '--trusted-host', config.authority];
+  const args = [launcher, '--profile', 'web', '--host', '127.0.0.1', '--port', String(config.dshPort), '--no-open', '--trusted-host', config.authority];
   const child = spawn(process.execPath, args, {
     cwd: config.workspace,
     env: { ...process.env, ...(config.dshHome ? { DSH_HOME: config.dshHome } : {}) },
@@ -78,10 +65,9 @@ export function startDsh(config, options = {}) {
       if (settled) return;
       try {
         const localUrl = line.slice(READY_PREFIX.length).split(' (LAN:')[0].trim();
-        const url = publicAuthenticationUrl(localUrl, config.publicOrigin);
         settled = true;
         clearTimeout(timeout);
-        resolveReady({ localUrl: new URL(localUrl), publicUrl: url, version: inspected.version });
+        resolveReady({ localUrl: new URL(localUrl), version: inspected.version });
       } catch (error) {
         settled = true;
         clearTimeout(timeout);
