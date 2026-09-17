@@ -1,6 +1,6 @@
 {
   "name": "dsh-web-gateway",
-  "version": "0.3.0-dev.4",
+  "version": "0.3.0-dev.5",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.19.0",
@@ -12,7 +12,8 @@
     "check": "node --test test/*.test.mjs",
     "test:dsh": "node scripts/test-dsh-integration.mjs",
     "install:layout": "dsh plugin --profile web add ./plugins/mobile-layout",
-    "remove:layout": "dsh plugin --profile web remove dsh-mobile-layout"
+    "remove:layout": "dsh plugin --profile web remove dsh-mobile-layout",
+    "windows:status": "pwsh -NoProfile -File scripts/windows/status.ps1"
   },
   "dependencies": {
     "qrcode": "1.5.4",

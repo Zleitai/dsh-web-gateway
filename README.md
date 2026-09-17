@@ -37,6 +37,33 @@ DSH 的签名 Cookie。DSH 启动凭据始终留在电脑内，不进入公网�
 样式插件可用 `pnpm remove:layout` 从 web profile 移除；移除或安装后应在没有运行中任务时重启 DSH。
 独立 hostname、Cloudflare Access 与回退步骤见 [docs/STAGING.md](docs/STAGING.md)。
 
+## Windows 自动启动
+
+测试稳定后，可以为当前 Windows 用户安装登录后自动启动任务。安装过程不会重启当前
+网关，也不保存邮箱、验证码、Cloudflare 凭据或 DSH 进程令牌：
+
+```powershell
+pwsh -NoProfile -File scripts/windows/install-autostart.ps1 `
+  -PublicOrigin https://dsh-v2.luisnode.com `
+  -Workspace C:\Users\Luis\Projects
+```
+
+查看任务和网关状态：
+
+```powershell
+pnpm windows:status
+```
+
+取消自动启动时保留配置和日志；添加 `-RemoveData` 才会一并删除它们：
+
+```powershell
+pwsh -NoProfile -File scripts/windows/uninstall-autostart.ps1
+```
+
+自动启动配置及最多两份轮换日志保存在 `%LOCALAPPDATA%\DSH Web Gateway`。任务使用
+安装时解析出的 Node.js、DSH 和仓库绝对路径；移动仓库或重新安装这些运行时后，应
+重新执行安装脚本更新路径。
+
 ## 历史版本
 
 完整源码均保留在 Git 中：

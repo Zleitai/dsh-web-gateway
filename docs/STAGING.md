@@ -42,6 +42,17 @@ pnpm start -- --public-origin https://<test-hostname> --workspace C:\<workspace>
 一次；Cloudflare 登录完成后，由本机入口消费它并兑换 DSH 的签名 Cookie。DSH 启动
 凭据不会离开电脑。
 
+实机验收通过后，可为当前 Windows 用户安装登录后自动启动任务：
+
+```powershell
+pwsh -NoProfile -File scripts/windows/install-autostart.ps1 `
+  -PublicOrigin https://<test-hostname> `
+  -Workspace C:\<workspace>
+```
+
+安装不会重启当前网关；任务在下次登录 Windows 时启动。使用 `pnpm windows:status`
+检查任务与本机健康端点。Cloudflared 应继续由它自己的 Windows 服务管理，不加入本任务。
+
 ## 验收与回退
 
 在 iPhone Safari 与 Android Chrome 上至少验证：
