@@ -9,8 +9,10 @@
   },
   "scripts": {
     "start": "node src/index.mjs",
-    "check": "node --test test/config.test.mjs test/admin.test.mjs",
-    "test:dsh": "node scripts/test-dsh-integration.mjs"
+    "check": "node --test test/*.test.mjs",
+    "test:dsh": "node scripts/test-dsh-integration.mjs",
+    "install:layout": "dsh plugin --profile web add ./plugins/mobile-layout",
+    "remove:layout": "dsh plugin --profile web remove dsh-mobile-layout"
   },
   "dependencies": {
     "qrcode": "1.5.4",

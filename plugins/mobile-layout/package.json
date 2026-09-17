@@ -1,0 +1,18 @@
+{
+  "name": "dsh-mobile-layout",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Versioned narrow-screen layout enhancement for DSH Web 0.1.5-rc.1",
+  "type": "module",
+  "main": "./index.mjs",
+  "files": [
+    "index.mjs",
+    "mobile.css",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

@@ -18,16 +18,21 @@ DeepSeek Harness Web 界面。
 当前原型使用独立端口启动原生 DSH Web，并在本机管理页显示公网认证二维码。
 它不会启动或配置公网隧道，也不会接管现有域名。
 
+`plugins/mobile-layout` 是为 DSH `0.1.5-rc.1` 验证的可选窄屏增强插件。
+它只注入本地 CSS，修复手机设置窗口过窄等布局问题；不添加悬浮按钮，也不实现第二套聊天界面。
+
 ```powershell
 pnpm install --frozen-lockfile
 pnpm check
 pnpm test:dsh
+pnpm install:layout
 pnpm start -- --public-origin https://测试域名 --workspace C:\绝对\工作区路径
 ```
 
 默认 DSH 端口为 `3090`，本机管理页为 `http://127.0.0.1:3091/`。
 测试域名必须已经通过受保护的出站隧道指向 `127.0.0.1:3090`。
 连接器只验证 DSH `0.1.5-rc.1`，检测到其他版本会明确退出。
+样式插件可用 `pnpm remove:layout` 从 web profile 移除；移除或安装后应在没有运行中任务时重启 DSH。
 
 ## 历史版本
 
