@@ -1,7 +1,7 @@
 import { parseArgs } from './config.mjs';
 import { startDsh } from './dsh.mjs';
 import { startAdmin } from './admin.mjs';
-import { publicPairingUrl, startGateway } from './gateway.mjs';
+import { startGateway } from './gateway.mjs';
 
 let dsh;
 let admin;
@@ -12,8 +12,7 @@ try {
   dsh = startDsh(config, { onLog: line => process.stderr.write(`[dsh] ${line}\n`) });
   const ready = await dsh.ready;
   gateway = await startGateway({ port: config.port, upstreamUrl: ready.localUrl, publicOrigin: config.publicOrigin });
-  const publicUrl = publicPairingUrl(ready.localUrl, config.publicOrigin);
-  admin = await startAdmin({ port: config.adminPort, publicUrl, version: ready.version });
+  admin = await startAdmin({ port: config.adminPort, publicOrigin: config.publicOrigin, issuePublicUrl: gateway.issuePairingUrl, version: ready.version });
   console.log(`DSH Web Gateway ready. Local management: ${admin.url}`);
   console.log(`Public origin: ${config.publicOrigin}`);
   console.log('The DSH process token is available only on the local management page.');

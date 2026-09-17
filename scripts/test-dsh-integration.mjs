@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
 import { WebSocket } from 'ws';
 import { resolveDshLauncher, startDsh } from '../src/dsh.mjs';
-import { publicPairingUrl, startGateway } from '../src/gateway.mjs';
+import { startGateway } from '../src/gateway.mjs';
 
 const home = await mkdtemp(join(tmpdir(), 'dsh-web-gateway-home-'));
 const workspace = await mkdtemp(join(tmpdir(), 'dsh-web-gateway-workspace-'));
@@ -34,11 +34,12 @@ try {
   const local = ready.localUrl;
   const dshPort = Number(local.port);
   assert(dshPort > 0);
-  const pairingUrl = publicPairingUrl(local, `https://${authority}`);
-  assert.equal(new URL(pairingUrl).origin, `https://${authority}`);
-  assert.equal(new URL(pairingUrl).search, '');
-  assert.match(new URL(pairingUrl).hash, /^#token=/);
   gateway = await startGateway({ port: 0, upstreamUrl: local, publicOrigin: `https://${authority}` });
+  const pairingUrl = gateway.issuePairingUrl();
+  assert.equal(new URL(pairingUrl).origin, `https://${authority}`);
+  assert.equal(new URL(pairingUrl).hash, '');
+  assert.match(new URL(pairingUrl).search, /^\?pair=[A-Za-z0-9_-]{40,}$/);
+  assert.doesNotMatch(pairingUrl, /token=/);
   const port = Number(new URL(gateway.url).port);
 
   const unauthenticated = await request(port, '/api', { host: authority, method: 'POST', body: '{}' });
@@ -47,26 +48,18 @@ try {
   const bootstrap = await request(port, '/', { host: authority });
   assert.equal(bootstrap.status, 200);
   assert.match(bootstrap.body, /连接 DSH/);
-  assert.doesNotMatch(bootstrap.body, /token=[A-Za-z0-9_-]{20}/);
+  assert.doesNotMatch(bootstrap.body, /pair=[A-Za-z0-9_-]{20}/);
 
-  const token = local.searchParams.get('token');
-  const exchange = await request(port, '/__dsh_gateway/auth', {
-    host: authority,
-    origin: `https://${authority}`,
-    method: 'POST',
-    body: JSON.stringify({ token }),
-  });
-  assert.equal(exchange.status, 204);
+  const pairing = new URL(pairingUrl);
+  const exchange = await request(port, `${pairing.pathname}${pairing.search}`, { host: authority });
+  assert.equal(exchange.status, 303);
+  assert.equal(exchange.headers.location, '/');
   const cookie = exchange.headers['set-cookie']?.[0]?.split(';', 1)[0];
   assert(cookie && !cookie.includes('token='));
 
-  const rejected = await request(port, '/__dsh_gateway/auth', {
-    host: authority,
-    origin: `https://${authority}`,
-    method: 'POST',
-    body: JSON.stringify({ token: `${token}x` }),
-  });
+  const rejected = await request(port, `${pairing.pathname}${pairing.search}`, { host: authority });
   assert.equal(rejected.status, 401);
+  assert.match(rejected.body, /二维码已失效/);
 
   const page = await request(port, '/', { host: authority, cookie });
   assert.equal(page.status, 200);
@@ -90,7 +83,7 @@ try {
   socket.close();
   await once(socket, 'close', { signal: AbortSignal.timeout(6000) });
 
-  console.log('DSH Web Gateway integration passed: 0.1.5-rc.1 capability check, fragment bootstrap, mobile layout plugin, trusted Host, token exchange, authority-bound cookie, authenticated page and WebSocket.');
+  console.log('DSH Web Gateway integration passed: 0.1.5-rc.1 capability check, one-time pairing code, mobile layout plugin, trusted Host, local token exchange, authority-bound cookie, authenticated page and WebSocket.');
 } finally {
   await gateway?.close();
   await dsh.stop();

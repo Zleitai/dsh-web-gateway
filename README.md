@@ -30,9 +30,9 @@ pnpm start -- --public-origin https://测试域名 --workspace C:\绝对\工作�
 ```
 
 默认公网入口端口为 `3090`，内部 DSH 端口为 `3092`，本机管理页为 `http://127.0.0.1:3091/`。
-测试域名必须已经通过受保护的出站隧道指向 `127.0.0.1:3090`。二维码把 DSH
-启动凭据放在 URL fragment 中；通过入口认证后，本机网关才把它兑换为 DSH 的签名 Cookie，
-避免凭据进入公网请求地址和访问日志。
+测试域名必须已经通过受保护的出站隧道指向 `127.0.0.1:3090`。二维码只包含一个
+十分钟有效、只能使用一次的高熵配对码；Cloudflare 登录完成后，本机网关才用它兑换
+DSH 的签名 Cookie。DSH 启动凭据始终留在电脑内，不进入公网请求地址和访问日志。
 连接器只验证 DSH `0.1.5-rc.1`，检测到其他版本会明确退出。
 样式插件可用 `pnpm remove:layout` 从 web profile 移除；移除或安装后应在没有运行中任务时重启 DSH。
 独立 hostname、Cloudflare Access 与回退步骤见 [docs/STAGING.md](docs/STAGING.md)。

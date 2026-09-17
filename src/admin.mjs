@@ -8,15 +8,17 @@ const headers = {
   'x-content-type-options': 'nosniff',
 };
 
-export async function startAdmin({ port, publicUrl, version }) {
-  const svg = await QRCode.toString(publicUrl, { type: 'svg', errorCorrectionLevel: 'M', width: 320, margin: 2 });
-  const origin = new URL(publicUrl).origin;
-  const page = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Web Gateway</title><style>body{font:16px system-ui;margin:0;background:#f5f7f6;color:#17231e}.card{max-width:480px;margin:5vh auto;padding:24px;background:white;border-radius:20px;box-shadow:0 8px 30px #173c2c18}img{display:block;max-width:320px;width:100%;margin:20px auto}a{display:block;padding:13px 16px;border-radius:12px;background:#174c3d;color:white;text-decoration:none;text-align:center}.muted{color:#617069;font-size:14px;overflow-wrap:anywhere}</style></head><body><main class="card"><h1>DSH 手机入口</h1><p>手机扫描二维码，或在本机打开认证入口。二维码包含本次 DSH 进程的登录凭据，请勿分享。</p><img src="/pair.svg" alt="DSH 手机认证二维码"><a href="${escapeHtml(publicUrl)}">打开 ${escapeHtml(origin)}</a><p class="muted">DSH ${escapeHtml(version)} · 管理页仅监听本机回环地址</p></main></body></html>`;
-  const server = http.createServer((request, response) => {
+export async function startAdmin({ port, publicOrigin, issuePublicUrl, version }) {
+  const origin = new URL(publicOrigin).origin;
+  const server = http.createServer(async (request, response) => {
     if (!isLocal(request)) { response.writeHead(403, headers).end(); return; }
     if (request.method !== 'GET' && request.method !== 'HEAD') { response.writeHead(405, headers).end(); return; }
-    if (request.url === '/') response.writeHead(200, { ...headers, 'content-type': 'text/html; charset=utf-8' }).end(page);
-    else if (request.url === '/pair.svg') response.writeHead(200, { ...headers, 'content-type': 'image/svg+xml' }).end(svg);
+    if (request.url === '/') {
+      const publicUrl = issuePublicUrl();
+      const svg = await QRCode.toString(publicUrl, { type: 'svg', errorCorrectionLevel: 'M', width: 320, margin: 2 });
+      const page = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Web Gateway</title><style>body{font:16px system-ui;margin:0;background:#f5f7f6;color:#17231e}.card{max-width:480px;margin:5vh auto;padding:24px;background:white;border-radius:20px;box-shadow:0 8px 30px #173c2c18}svg{display:block;max-width:320px;width:100%;height:auto;margin:20px auto}a{display:block;padding:13px 16px;border-radius:12px;background:#174c3d;color:white;text-decoration:none;text-align:center}.muted{color:#617069;font-size:14px;overflow-wrap:anywhere}</style></head><body><main class="card"><h1>DSH 手机入口</h1><p>手机扫描二维码，或在本机打开认证入口。二维码十分钟内有效且只能使用一次，请勿分享。</p>${svg}<a href="${escapeHtml(publicUrl)}">打开 ${escapeHtml(origin)}</a><p class="muted">DSH ${escapeHtml(version)} · 管理页仅监听本机回环地址</p></main></body></html>`;
+      response.writeHead(200, { ...headers, 'content-type': 'text/html; charset=utf-8' }).end(request.method === 'HEAD' ? undefined : page);
+    }
     else if (request.url === '/health') response.writeHead(200, { ...headers, 'content-type': 'application/json' }).end(JSON.stringify({ status: 'ok', dshVersion: version, publicOrigin: origin }));
     else response.writeHead(404, headers).end();
   });
