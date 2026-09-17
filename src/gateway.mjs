@@ -3,7 +3,9 @@ import { randomBytes } from 'node:crypto';
 
 const COOKIE_PREFIX = 'dsh-auth-';
 const PAIR_QUERY = 'pair';
+const AUTH_PATH = '/__dsh_gateway/auth';
 const DEFAULT_PAIRING_TTL_MS = 10 * 60 * 1000;
+const MAX_AUTH_BODY_BYTES = 4096;
 const commonHeaders = {
   'cache-control': 'no-store',
   'referrer-policy': 'no-referrer',
@@ -25,14 +27,22 @@ export async function startGateway({ port, upstreamUrl, publicOrigin, pairingTtl
         return;
       }
       const url = new URL(request.url ?? '/', expectedOrigin);
+      if (url.pathname === AUTH_PATH) {
+        await exchangePairingCode(request, response, { pairingCodes, launchToken, upstream, expectedAuthority, expectedOrigin });
+        return;
+      }
       if (request.method === 'GET' && url.pathname === '/' && url.searchParams.has(PAIR_QUERY)) {
         const codes = url.searchParams.getAll(PAIR_QUERY);
         const validShape = codes.length === 1 && [...url.searchParams.keys()].every(key => key === PAIR_QUERY);
-        if (!validShape || !consumePairingCode(pairingCodes, codes[0])) {
+        if (!validShape || !isPairingCodeValid(pairingCodes, codes[0])) {
           response.writeHead(401, { ...commonHeaders, 'content-type': 'text/html; charset=utf-8' }).end(expiredPage);
           return;
         }
-        await exchangeDshSession(response, { launchToken, upstream, expectedAuthority });
+        response.writeHead(200, {
+          ...commonHeaders,
+          'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+          'content-type': 'text/html; charset=utf-8',
+        }).end(pairingPage);
         return;
       }
       if ((request.method === 'GET' || request.method === 'HEAD') && url.pathname === '/' && !hasDshCookie(request.headers.cookie)) {
@@ -76,7 +86,19 @@ export async function startGateway({ port, upstreamUrl, publicOrigin, pairingTtl
   };
 }
 
-async function exchangeDshSession(response, context) {
+async function exchangePairingCode(request, response, context) {
+  if (request.method !== 'POST' || request.headers.origin !== context.expectedOrigin ||
+      !request.headers['content-type']?.toLowerCase().startsWith('application/json')) {
+    response.writeHead(403, commonHeaders).end();
+    return;
+  }
+  const body = await readBody(request);
+  let code;
+  try { code = JSON.parse(body).code; } catch { code = undefined; }
+  if (typeof code !== 'string' || !consumePairingCode(context.pairingCodes, code)) {
+    response.writeHead(401, commonHeaders).end();
+    return;
+  }
   const upstreamResponse = await upstreamRequest({
     ...context.upstream,
     method: 'GET',
@@ -90,7 +112,12 @@ async function exchangeDshSession(response, context) {
     return;
   }
   upstreamResponse.resume();
-  response.writeHead(303, { ...commonHeaders, 'set-cookie': cookie, location: '/' }).end();
+  response.writeHead(204, { ...commonHeaders, 'set-cookie': cookie }).end();
+}
+
+function isPairingCodeValid(codes, code) {
+  const expiresAt = codes.get(code);
+  return expiresAt !== undefined && expiresAt > Date.now();
 }
 
 function consumePairingCode(codes, code) {
@@ -152,6 +179,20 @@ function upstreamRequest(options) {
   });
 }
 
+function readBody(request) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const chunks = [];
+    let size = 0;
+    request.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_AUTH_BODY_BYTES) request.destroy(new Error('authentication payload too large'));
+      else chunks.push(chunk);
+    });
+    request.once('end', () => resolvePromise(Buffer.concat(chunks).toString('utf8')));
+    request.once('error', rejectPromise);
+  });
+}
+
 function hasDshCookie(value = '') {
   return value.split(';').some(part => part.trim().startsWith(COOKIE_PREFIX));
 }
@@ -168,4 +209,5 @@ function validateLocalAuthenticationUrl(value) {
 
 const pageStyle = 'body{font:16px system-ui;margin:0;background:#f5f7f6;color:#17231e}.card{max-width:420px;margin:12vh auto;padding:24px;background:white;border-radius:20px;box-shadow:0 8px 30px #173c2c18}.muted{color:#617069}';
 const waitingPage = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>连接 DSH</title><style>${pageStyle}</style></head><body><main class="card"><h1>连接 DSH</h1><p>需要从电脑管理页重新扫码。</p><p class="muted">请回到电脑上的“DSH 手机入口”，刷新页面后扫描新二维码。</p></main></body></html>`;
+const pairingPage = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>连接 DSH</title><style>${pageStyle}button{width:100%;padding:13px 16px;border:0;border-radius:12px;background:#174c3d;color:white;font:inherit}</style></head><body><main class="card"><h1>连接 DSH</h1><p id="status">正在完成安全连接…</p><p class="muted">请保持此页面打开。</p><button id="retry" hidden>重新连接</button></main><script>(()=>{const status=document.getElementById('status');const retry=document.getElementById('retry');const connect=async()=>{const code=new URLSearchParams(location.search).get('${PAIR_QUERY}');history.replaceState(null,'','/');if(!code){status.textContent='配对信息无效，请重新扫码。';return}try{const response=await fetch('${AUTH_PATH}',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({code})});if(!response.ok)throw new Error();location.replace('/')}catch{status.textContent='连接失败，请刷新电脑管理页后重新扫码。';retry.hidden=false}};retry.onclick=()=>location.reload();void connect()})()</script></body></html>`;
 const expiredPage = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>二维码已失效</title><style>${pageStyle}</style></head><body><main class="card"><h1>二维码已失效</h1><p>这个二维码已经使用过或超过十分钟。</p><p class="muted">请刷新电脑上的“DSH 手机入口”，再扫描新二维码。</p></main></body></html>`;

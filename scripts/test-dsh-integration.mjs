@@ -51,15 +51,27 @@ try {
   assert.doesNotMatch(bootstrap.body, /pair=[A-Za-z0-9_-]{20}/);
 
   const pairing = new URL(pairingUrl);
-  const exchange = await request(port, `${pairing.pathname}${pairing.search}`, { host: authority });
-  assert.equal(exchange.status, 303);
-  assert.equal(exchange.headers.location, '/');
+  const handoff = await request(port, `${pairing.pathname}${pairing.search}`, { host: authority });
+  assert.equal(handoff.status, 200);
+  assert.match(handoff.body, /正在完成安全连接/);
+  const code = pairing.searchParams.get('pair');
+  const exchange = await request(port, '/__dsh_gateway/auth', {
+    host: authority,
+    origin: `https://${authority}`,
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+  assert.equal(exchange.status, 204);
   const cookie = exchange.headers['set-cookie']?.[0]?.split(';', 1)[0];
   assert(cookie && !cookie.includes('token='));
 
-  const rejected = await request(port, `${pairing.pathname}${pairing.search}`, { host: authority });
+  const rejected = await request(port, '/__dsh_gateway/auth', {
+    host: authority,
+    origin: `https://${authority}`,
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
   assert.equal(rejected.status, 401);
-  assert.match(rejected.body, /二维码已失效/);
 
   const page = await request(port, '/', { host: authority, cookie });
   assert.equal(page.status, 200);
