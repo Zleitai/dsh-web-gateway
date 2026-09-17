@@ -13,6 +13,22 @@ DeepSeek Harness Web 界面。
 - 当前适配目标为 DSH `0.1.5-rc.1` 及其公开的 `--trusted-host` 接入方式。
 - 新版本会先在独立测试地址验收，再切换现有域名。
 
+## 连接器原型
+
+当前原型使用独立端口启动原生 DSH Web，并在本机管理页显示公网认证二维码。
+它不会启动或配置公网隧道，也不会接管现有域名。
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm check
+pnpm test:dsh
+pnpm start -- --public-origin https://测试域名 --workspace C:\绝对\工作区路径
+```
+
+默认 DSH 端口为 `3090`，本机管理页为 `http://127.0.0.1:3091/`。
+测试域名必须已经通过受保护的出站隧道指向 `127.0.0.1:3090`。
+连接器只验证 DSH `0.1.5-rc.1`，检测到其他版本会明确退出。
+
 ## 历史版本
 
 完整源码均保留在 Git 中：

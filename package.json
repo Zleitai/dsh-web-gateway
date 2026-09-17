@@ -1,0 +1,20 @@
+{
+  "name": "dsh-web-gateway",
+  "version": "0.3.0-dev.1",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.mjs",
+    "check": "node --test test/config.test.mjs test/admin.test.mjs",
+    "test:dsh": "node scripts/test-dsh-integration.mjs"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4",
+    "ws": "8.21.3"
+  },
+  "license": "MIT"
+}
