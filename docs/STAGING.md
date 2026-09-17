@@ -13,6 +13,12 @@ V2 必须先使用独立 hostname 验收。不要直接修改现有生产 hostna
 4. 不设置 HTTP Host Header 改写；
 5. 保留现有生产 hostname 与 `127.0.0.1:3088` 的路由。
 
+Access 登录方式使用 **One-time PIN**，应用内关闭“接受所有可用的标识提供程序”，
+只选择 `onetimepin` 并开启即时身份验证。新版 Cloudflare Zero Trust 账号会默认添加
+Cloudflare 账号登录；若保留该默认方式，未登录控制台的手机会被带到
+`dash.cloudflare.com`，不符合本项目的邮箱验证码体验。允许策略仍须限制到明确的邮箱，
+不能只依赖 OTP 登录方式本身。
+
 连接器会把测试 hostname 作为 DSH 的 `--trusted-host`。普通 HTTP 与 WebSocket 因此使用
 同一个公开 authority，不再经过旧代理的 Host/Origin 改写。
 
