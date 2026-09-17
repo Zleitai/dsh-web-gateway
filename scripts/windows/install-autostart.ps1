@@ -20,6 +20,7 @@ $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 $workspacePath = (Resolve-Path -LiteralPath $Workspace).Path
 $entrypoint = Join-Path $repoRoot 'src\index.mjs'
 $runner = Join-Path $PSScriptRoot 'run-gateway.mjs'
+$hiddenRunner = Join-Path $PSScriptRoot 'run-hidden.ps1'
 $node = Get-Command node.exe -ErrorAction Stop
 $dshLauncher = Join-Path $env:APPDATA 'npm\node_modules\@deepseek-ai\dsh\lib\bin.js'
 
@@ -45,8 +46,10 @@ $config = [ordered]@{
 }
 $config | ConvertTo-Json | Set-Content -LiteralPath $configPath -Encoding utf8
 
-$actionArguments = '"' + $runner + '" "' + $configPath + '"'
-$action = New-ScheduledTaskAction -Execute $node.Source -Argument $actionArguments -WorkingDirectory $repoRoot
+$powerShell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+$actionArguments = '-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + `
+  $hiddenRunner + '" -RunnerPath "' + $runner + '" -ConfigPath "' + $configPath + '"'
+$action = New-ScheduledTaskAction -Execute $powerShell -Argument $actionArguments -WorkingDirectory $repoRoot
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
