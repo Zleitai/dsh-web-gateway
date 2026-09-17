@@ -33,6 +33,7 @@ pnpm start -- --public-origin https://测试域名 --workspace C:\绝对\工作�
 测试域名必须已经通过受保护的出站隧道指向 `127.0.0.1:3090`。
 连接器只验证 DSH `0.1.5-rc.1`，检测到其他版本会明确退出。
 样式插件可用 `pnpm remove:layout` 从 web profile 移除；移除或安装后应在没有运行中任务时重启 DSH。
+独立 hostname、Cloudflare Access 与回退步骤见 [docs/STAGING.md](docs/STAGING.md)。
 
 ## 历史版本
 
