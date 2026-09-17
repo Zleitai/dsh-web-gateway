@@ -1,7 +1,0 @@
-- insert:
-    - id: dsh-mobile-control
-      name: '@dsh-mobile/host'
-      config:
-        relayUrl: ''
-        mobileUrl: ''
-        enabled: true

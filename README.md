@@ -1,119 +1,48 @@
-# DSH Mobile Control
+# DSH Web Gateway
 
-电脑运行 DeepSeek Harness，手机扫码、电脑确认，继续同一个任务。
-独立开源 Alpha 项目，非 DeepSeek 官方产品。
+从手机或其他浏览器通过一个固定 HTTPS 地址，直接使用电脑上正在运行的
+DeepSeek Harness Web 界面。
 
-> 此分支保存独立手机 PWA 原型，已停止作为产品主线开发。
-> 它只兼容 DSH 0.1.2-rc.1；后续工作转向通过固定 HTTPS 地址访问原生 DSH Web。
+本仓库正在开发 V2。V2 不再维护一套独立的手机聊天客户端，而是保留 DSH
+原生会话、设置、工具、审批和新版本功能，只负责安全接入、启动管理与移动布局适配。
 
-**0.2.0-alpha.2 · 仅适配 DSH 0.1.2-rc.1 · Node.js 24。**
-默认公共中转尚未部署；已支持邀请码接入和自托管。
-实机与发布门槛见 [验收记录](docs/ACCEPTANCE.md)。
+## 当前状态
 
-## 功能
+- 生产中的 `dsh.luisnode.com` 暂时继续使用旧网站代理，切换 V2 前不改动。
+- V2 尚未接管任何域名，也不会自动启动、停止或重启现有 DSH 与隧道。
+- 当前适配目标为 DSH `0.1.5-rc.1` 及其公开的 `--trusted-host` 接入方式。
+- 新版本会先在独立测试地址验收，再切换现有域名。
 
-- 免账号、五分钟一次性二维码、电脑确认、设备独立授权与即时撤销。
-- 工作区默认不共享；手机只访问电脑明确共享的工作区。
-- 会话列表、创建、分页历史、文字聊天、流式回复、单次审批、结构化问题与取消。
-- libsodium 端到端加密、每次重连新密钥、防篡改/重放、严格协议白名单。
-- 重连补齐事件序号；提交持久化后确认，结果不确定时核对、不自动重发。
-- 手机只保存设备密钥和配对信息，聊天不作离线持久化。
+## 历史版本
 
-不包含文件管理、图片、全局/模型设置、推送、原生 App 或 P2P。
+完整源码均保留在 Git 中：
 
-## 开发与测试
+| 分支或标签 | 内容 | 状态 |
+| --- | --- | --- |
+| `legacy/web-proxy-v1` / `web-proxy-v1` | 原网站代理与 DSH 移动样式插件 | 当前回退基线 |
+| `archive/mobile-pwa` / `mobile-pwa-v0.2.0-alpha.2` | 独立 PWA、中转、配对和端到端加密原型 | 已冻结，不再作为产品主线 |
+| `main` | 固定网址访问原生 DSH Web 的 V2 | 开发中 |
 
-安装 Node.js 24、pnpm 11.19.0，在仓库根目录执行：
-
-```powershell
-pnpm install --frozen-lockfile
-pnpm check
-pnpm dev:relay
-```
-
-另开终端运行 `pnpm dev:mobile`。默认中转 http://127.0.0.1:4090，
-网页 http://127.0.0.1:5173。HTTP 只允许回环地址；
-手机跨网络使用需要已部署的 HTTPS 服务，普通用户使用服务提供的地址。
-
-无需域名的实机测试见 [临时 HTTPS 入口](docs/TEMPORARY-TEST.md)。
+查看历史版本无需复制文件：
 
 ```powershell
-pnpm exec playwright install chromium webkit
-pnpm test:e2e
-pnpm test:dsh
-pnpm package
+git switch archive/mobile-pwa
+git switch legacy/web-proxy-v1
+git switch main
 ```
 
-`test:e2e` 使用构建后的网页与本地模拟任务。
-`test:dsh` 自动创建临时 DSH_HOME、工作区和随机端口，加载真实固定版本发布包，
-模型网络层使用确定性夹具，不读取用户凭据/会话，不调用付费模型。
-非全局安装可设置 DSH_PACKAGE_ROOT 指向发布包目录。
-发行包验证：构建后设置 MOBILE_TEST_PACKAGED=1，再运行 test:dsh。
+切换分支只用于查看和开发源码，不会改变已经运行的 Windows 进程或 Cloudflare 配置。
 
-## 安装电脑插件
+## V2 原则
 
-```powershell
-dsh --version
-dsh plugin --profile web add ./artifacts/dsh-mobile-host-0.2.0-alpha.2.tgz
-```
+- 普通用户只需要安装电脑端程序并打开固定网址。
+- DSH 与隧道仍只监听或连接本机受控入口，不直接开放公网端口。
+- 使用 DSH 自带的 Host、Origin 与进程令牌认证，不再伪造请求头绕过检查。
+- 公网入口必须先经过独立身份验证；DSH 认证作为第二层保护。
+- 移动适配失效时，原生 DSH 页面仍可访问，不让样式插件决定核心功能是否可用。
+- DSH 更新先经过兼容测试，再更新支持范围。
 
-安装包包含运行依赖，不依赖尚未发布的协议包；不安装或升级用户 DSH。
-当前插件没有接入 DSH 设置页的可视化配置卡片，不能在“插件配置”页填写这些字段。
-在 `$DSH_HOME/profiles/web/cordis.patch.yml`（未设置 DSH_HOME 时为
-`%USERPROFILE%/.dsh/profiles/web/cordis.patch.yml`）末尾添加下列配置；
-如果已有 `id: dsh-mobile-control` 覆盖项，修改该项，不要重复添加。保留文件里已有的其他配置。
+架构和边界见 [V2 架构](docs/ARCHITECTURE.md)，安全切换步骤见
+[迁移方案](docs/MIGRATION.md)。
 
-```yaml
-- id: dsh-mobile-control
-  config:
-    enabled: true
-    relayUrl: 'http://127.0.0.1:4090'
-    mobileUrl: 'http://127.0.0.1:5173'
-```
-
-部署后填入服务提供的 HTTPS origin。地址不能包含路径、查询、fragment 或用户名密码。
-Compose 和临时隧道部署的两个地址相同。使用其他 profile 时修改对应的 profile 文件。
-保存后由 DSH 的配置热重载生效；如果当前运行方式未启用热重载，等任务结束后重启。
-
-在电脑**本机已登录 DSH 的浏览器**访问相同端口下的
-`/mobile-control`（例如 `http://127.0.0.1:3080/mobile-control`，可添加书签）。
-插件不在 DSH 页面叠加悬浮按钮，以免遮挡设置或其他控件。
-注册电脑、选择共享工作区、生成二维码。
-手机扫码后，比对两端校验码，在电脑确认配对。
-默认服务使用邀请码，自托管未限制注册时可留空。
-管理页使用 DSH 原生浏览器认证，只允许回环连接和同源写入。
-
-插件数据在 `$DSH_HOME/mobile-control/`，未设置时为用户目录下
-`.dsh/mobile-control/`。不要提交该目录。清除浏览器数据后须重新配对。
-
-## 发布与卸载
-
-见 [部署文档](docs/DEPLOYMENT.md)、[安全模型](docs/SECURITY.md)。
-`pnpm package` 生成电脑插件、手机网页两个 tgz 和 SHA256SUMS，位于 artifacts/。
-
-卸载前撤销设备并禁用插件：
-
-```powershell
-dsh plugin --profile web remove @dsh-mobile/host
-```
-
-插件不主动取消 DSH 任务。若 profile 需要重启才能卸载，请等待任务结束。
-插件停止后可删除其 mobile-control 数据，不能删除 DSH 的 sessions/credentials/profiles。
-
-旧代理、VBS 和 CSS 补丁保存在 Git 基线提交 `0dc7ec1`；
-实际运行目录与旧服务没有改动，迁移需另行验收。新旧授权不复用。
-
-## 目录与许可
-
-```text
-apps/mobile/        React + Vite PWA
-apps/relay/         Fastify + WebSocket + SQLite
-packages/host/      DSH 插件与窄适配器
-packages/protocol/  协议与加密通道
-tests/              单元、真实 DSH、浏览器测试
-scripts/            构建与测试辅助
-deploy/             Caddy
-docs/               安全、部署、验收
-```
-
-[MIT](LICENSE)。[第三方说明](docs/THIRD_PARTY.md)，发行包附带第三方许可证全文。
+本项目不是 DeepSeek 官方产品。[MIT](LICENSE)。

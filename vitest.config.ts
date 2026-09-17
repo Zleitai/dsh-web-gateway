@@ -1,2 +1,0 @@
-import { defineConfig } from 'vitest/config';
-export default defineConfig({ test: { include: ['tests/**/*.test.ts'], testTimeout: 15000, fileParallelism: false }, resolve: { alias: { '@dsh-mobile/protocol': new URL('./packages/protocol/src/index.ts', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'), '@dsh-mobile/host': new URL('./packages/host/src/index.ts', import.meta.url).pathname.replace(/^\/(\w:)/, '$1') } } });
