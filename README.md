@@ -60,7 +60,7 @@ pnpm windows:status
 pwsh -NoProfile -File scripts/windows/uninstall-autostart.ps1
 ```
 
-自动启动配置及最多两份轮换日志保存在 `%LOCALAPPDATA%\DSH Web Gateway`。任务使用
+自动启动配置及最多两份轮换日志保存在仓库的 `.local` 目录，该目录不会提交到 Git。任务使用
 安装时解析出的 Node.js、DSH 和仓库绝对路径；移动仓库或重新安装这些运行时后，应
 重新执行安装脚本更新路径。
 

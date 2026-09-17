@@ -19,7 +19,7 @@ if ($env:OS -ne 'Windows_NT') {
 $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 $workspacePath = (Resolve-Path -LiteralPath $Workspace).Path
 $entrypoint = Join-Path $repoRoot 'src\index.mjs'
-$runner = Join-Path $PSScriptRoot 'run-gateway.ps1'
+$runner = Join-Path $PSScriptRoot 'run-gateway.mjs'
 $node = Get-Command node.exe -ErrorAction Stop
 $dshLauncher = Join-Path $env:APPDATA 'npm\node_modules\@deepseek-ai\dsh\lib\bin.js'
 
@@ -30,14 +30,7 @@ if (-not (Test-Path -LiteralPath $dshLauncher -PathType Leaf)) {
   throw 'DSH was not found in the current user npm installation.'
 }
 
-$installedPowerShell = 'C:\Program Files\PowerShell\7\pwsh.exe'
-$powerShell = if (Test-Path -LiteralPath $installedPowerShell -PathType Leaf) {
-  $installedPowerShell
-} else {
-  (Get-Command pwsh.exe -ErrorAction Stop).Source
-}
-
-$dataDirectory = Join-Path $env:LOCALAPPDATA 'DSH Web Gateway'
+$dataDirectory = Join-Path $repoRoot '.local'
 $configPath = Join-Path $dataDirectory 'config.json'
 $logPath = Join-Path $dataDirectory 'gateway.log'
 New-Item -ItemType Directory -Path $dataDirectory -Force | Out-Null
@@ -52,10 +45,8 @@ $config = [ordered]@{
 }
 $config | ConvertTo-Json | Set-Content -LiteralPath $configPath -Encoding utf8
 
-$quotedRunner = '"' + $runner + '"'
-$quotedConfig = '"' + $configPath + '"'
-$actionArguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $quotedRunner -ConfigPath $quotedConfig"
-$action = New-ScheduledTaskAction -Execute $powerShell -Argument $actionArguments -WorkingDirectory $repoRoot
+$actionArguments = '"' + $runner + '" "' + $configPath + '"'
+$action = New-ScheduledTaskAction -Execute $node.Source -Argument $actionArguments -WorkingDirectory $repoRoot
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `

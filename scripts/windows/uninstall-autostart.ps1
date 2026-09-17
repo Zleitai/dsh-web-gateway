@@ -14,7 +14,8 @@ if ($task) {
 }
 
 if ($RemoveData) {
-  $dataDirectory = Join-Path $env:LOCALAPPDATA 'DSH Web Gateway'
+  $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
+  $dataDirectory = Join-Path $repoRoot '.local'
   if (Test-Path -LiteralPath $dataDirectory) {
     Remove-Item -LiteralPath $dataDirectory -Recurse -Force
     Write-Output "Removed local configuration and logs: $dataDirectory"
