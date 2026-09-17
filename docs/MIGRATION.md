@@ -1,29 +1,28 @@
 # 迁移方案
 
-## 已冻结的基线
+## 已归档的版本
 
 - `legacy/web-proxy-v1` 与标签 `web-proxy-v1` 保存原网站代理和移动样式插件。
 - `archive/mobile-pwa` 与标签 `mobile-pwa-v0.2.0-alpha.2` 保存独立手机端原型。
-- 当前正在运行的旧代理位于仓库外，监听 `127.0.0.1:3088`；整理 Git 不会改变该进程。
+- 原代理进程、开机启动项、`@dsh-mobile/host` 插件和对应配置覆盖已从电脑移除。
+- 原域名 `dsh.luisnode.com` 的 Access 应用与 Tunnel 路由在退役时删除。
 
 归档分支只接受安全修复和恢复所需说明，不继续增加产品功能。
 
-## 开发与切换
+## 已完成的切换
 
-1. 在 `main` 实现连接器、受支持的 DSH 启动方式和移动增强层。
-2. 使用独立本地端口和独立测试 hostname，不占用 `3080`、`3088` 或现有域名。
-3. 验证入口认证、DSH token 交换、HTTP、WebSocket、刷新、长任务、审批、设置和文件展示。
-4. 在实际 iPhone Safari 与 Android Chrome 验证窄屏布局、锁屏恢复和网络切换。
-5. 关闭 V2 测试入口，确认现有生产 hostname 与旧代理完全不受影响。
-6. 备份边缘路由配置，将现有域名的上游从旧代理切换到 V2。
-7. 观察错误率和连接恢复；发现异常时仅恢复上游路由到 `127.0.0.1:3088`。
-8. 稳定运行后停止旧代理，但保留分支、标签、安装包和回退说明。
+1. `main` 提供连接器、受支持的 DSH 启动方式和移动增强层。
+2. V2 使用 `127.0.0.1:3090`，本机管理页使用 `127.0.0.1:3091`，内部原生 DSH 使用 `127.0.0.1:3092`。
+3. Cloudflare Access 与 Tunnel 只保留 `dsh-v2.luisnode.com`，上游指向 `http://127.0.0.1:3090`。
+4. Windows 计划任务 `DSH Web Gateway` 管理 V2；Cloudflared 继续由独立 Windows 服务管理。
+5. 旧代理的 `127.0.0.1:3088`、启动脚本和旧域名不再作为回退路径。
+
+需要排查历史实现时，可以查看归档分支或标签。恢复旧代理必须作为一次新的部署执行，不能假设电脑仍保留其运行环境或边缘路由。
 
 ## PWA 原型退出
 
-独立 PWA 临时入口可在不再测试时停止。卸载其 DSH 插件前应等待正在运行的任务结束，
-先撤销测试设备，再从 web profile 删除 `@dsh-mobile/host` 和对应的
-`dsh-mobile-control` 配置覆盖。不得删除 DSH 的 sessions、credentials 或 profiles。
+独立 PWA 临时入口已经停止。`@dsh-mobile/host` 与对应的
+`dsh-mobile-control` 配置覆盖已经从 web profile 删除；DSH 的 sessions、credentials 和其他 profile 数据均保留。
 
 PWA 中的加密、设备授权、撤销、请求去重和断线恢复实现保留在归档分支，未来若建设
 托管连接服务，可按需提取，而不是继续维护整套替代界面。

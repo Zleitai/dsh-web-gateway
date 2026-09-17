@@ -1,17 +1,17 @@
-# 独立测试入口
+# V2 公网入口
 
-V2 必须先使用独立 hostname 验收。不要直接修改现有生产 hostname，也不要把新入口裸露在公网。
+V2 使用独立 hostname，并由 Cloudflare Access 保护。新增版本必须先在本机和实机完成验收，再更新这个入口。
 
 ## 边缘配置
 
 本机现有 `cloudflared` 以 Windows 服务运行，并使用 token-file 接入远程管理的 Tunnel。
-因此测试入口应在 Cloudflare 控制台完成以下配置，不需要再启动第二个 Quick Tunnel：
+因此公网入口应在 Cloudflare 控制台完成以下配置，不需要再启动第二个 Quick Tunnel：
 
-1. 先为测试 hostname 建立 Cloudflare Access 应用和允许策略；
+1. 为 V2 hostname 建立 Cloudflare Access 应用和允许策略；
 2. 在同一 Named Tunnel 中新增 Public Hostname；
 3. Service 指向 `http://127.0.0.1:3090`；
 4. 不设置 HTTP Host Header 改写；
-5. 保留现有生产 hostname 与 `127.0.0.1:3088` 的路由。
+5. 删除已经退役的旧 hostname 与 `127.0.0.1:3088` 路由。
 
 Access 登录方式使用 **One-time PIN**，应用内关闭“接受所有可用的标识提供程序”，
 只选择 `onetimepin` 并开启即时身份验证。新版 Cloudflare Zero Trust 账号会默认添加
@@ -19,7 +19,7 @@ Cloudflare 账号登录；若保留该默认方式，未登录控制台的手机
 `dash.cloudflare.com`，不符合本项目的邮箱验证码体验。允许策略仍须限制到明确的邮箱，
 不能只依赖 OTP 登录方式本身。
 
-连接器会把测试 hostname 作为 DSH 的 `--trusted-host`。普通 HTTP 与 WebSocket 因此使用
+连接器会把 V2 hostname 作为 DSH 的 `--trusted-host`。普通 HTTP 与 WebSocket 因此使用
 同一个公开 authority，不再经过旧代理的 Host/Origin 改写。
 
 ## 本机启动
@@ -31,7 +31,7 @@ pnpm install --frozen-lockfile
 pnpm install:layout
 ```
 
-启动独立 V2 实例，其中 public origin 必须和 Cloudflare 中的测试 hostname 完全一致：
+启动 V2 实例，其中 public origin 必须和 Cloudflare 中的 hostname 完全一致：
 
 ```powershell
 pnpm start -- --public-origin https://<test-hostname> --workspace C:\<workspace>
@@ -46,7 +46,7 @@ pnpm start -- --public-origin https://<test-hostname> --workspace C:\<workspace>
 
 ```powershell
 pwsh -NoProfile -File scripts/windows/install-autostart.ps1 `
-  -PublicOrigin https://<test-hostname> `
+  -PublicOrigin https://dsh-v2.luisnode.com `
   -Workspace C:\<workspace>
 ```
 
@@ -63,5 +63,5 @@ pwsh -NoProfile -File scripts/windows/install-autostart.ps1 `
 - 设置窗口、插件页、长文本、代码块和屏幕旋转；
 - 锁屏与 Wi-Fi/移动网络切换后的恢复。
 
-测试失败时先删除或停用测试 Public Hostname，再停止 V2。现有生产 hostname 仍指向
-`127.0.0.1:3088`，无需改动。不要在任务运行期间重启 DSH 或安装、移除插件。
+测试失败时停止 V2 并检查本机日志、Cloudflared 服务与 Access 配置。旧代理已经退役，
+不再切回 `127.0.0.1:3088`。不要在任务运行期间重启 DSH 或安装、移除插件。

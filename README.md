@@ -8,8 +8,8 @@ DeepSeek Harness Web 界面。
 
 ## 当前状态
 
-- 生产入口在切换 V2 前继续使用旧网站代理，不做原地测试。
-- V2 先在独立测试 hostname 验收，通过后再接管生产入口。
+- V2 是唯一在用的远程入口，固定地址为 `https://dsh-v2.luisnode.com`。
+- 原网站代理、开机启动脚本与独立手机 PWA 插件已经退役；源码只保留在 Git 历史分支中。
 - 当前适配目标为 DSH `0.1.5-rc.1` 及其公开的 `--trusted-host` 接入方式。
 - 新版本会先在独立测试地址验收，再切换现有域名。
 
@@ -75,7 +75,7 @@ pwsh -NoProfile -File scripts/windows/uninstall-autostart.ps1
 
 | 分支或标签 | 内容 | 状态 |
 | --- | --- | --- |
-| `legacy/web-proxy-v1` / `web-proxy-v1` | 原网站代理与 DSH 移动样式插件 | 当前回退基线 |
+| `legacy/web-proxy-v1` / `web-proxy-v1` | 原网站代理与 DSH 移动样式插件 | 已退役，仅保留源码记录 |
 | `archive/mobile-pwa` / `mobile-pwa-v0.2.0-alpha.2` | 独立 PWA、中转、配对和端到端加密原型 | 已冻结，不再作为产品主线 |
 | `main` | 固定网址访问原生 DSH Web 的 V2 | 开发中 |
 
@@ -87,7 +87,7 @@ git switch legacy/web-proxy-v1
 git switch main
 ```
 
-切换分支只用于查看和开发源码，不会改变已经运行的 Windows 进程或 Cloudflare 配置。
+切换分支只用于查看和开发源码，不会重新安装、启动旧代理，也不会改变 Cloudflare 配置。
 
 ## V2 原则
 
