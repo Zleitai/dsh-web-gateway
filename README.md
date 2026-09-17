@@ -3,7 +3,10 @@
 电脑运行 DeepSeek Harness，手机扫码、电脑确认，继续同一个任务。
 独立开源 Alpha 项目，非 DeepSeek 官方产品。
 
-**0.2.0-alpha.1 · 仅适配 DSH 0.1.2-rc.1 · Node.js 24。**
+> 此分支保存独立手机 PWA 原型，已停止作为产品主线开发。
+> 它只兼容 DSH 0.1.2-rc.1；后续工作转向通过固定 HTTPS 地址访问原生 DSH Web。
+
+**0.2.0-alpha.2 · 仅适配 DSH 0.1.2-rc.1 · Node.js 24。**
 默认公共中转尚未部署；已支持邀请码接入和自托管。
 实机与发布门槛见 [验收记录](docs/ACCEPTANCE.md)。
 
@@ -32,6 +35,8 @@ pnpm dev:relay
 网页 http://127.0.0.1:5173。HTTP 只允许回环地址；
 手机跨网络使用需要已部署的 HTTPS 服务，普通用户使用服务提供的地址。
 
+无需域名的实机测试见 [临时 HTTPS 入口](docs/TEMPORARY-TEST.md)。
+
 ```powershell
 pnpm exec playwright install chromium webkit
 pnpm test:e2e
@@ -49,23 +54,31 @@ pnpm package
 
 ```powershell
 dsh --version
-dsh plugin --profile web add ./artifacts/dsh-mobile-host-0.2.0-alpha.1.tgz
+dsh plugin --profile web add ./artifacts/dsh-mobile-host-0.2.0-alpha.2.tgz
 ```
 
 安装包包含运行依赖，不依赖尚未发布的协议包；不安装或升级用户 DSH。
-在 DSH 插件管理中配置 dsh-mobile-control：
+当前插件没有接入 DSH 设置页的可视化配置卡片，不能在“插件配置”页填写这些字段。
+在 `$DSH_HOME/profiles/web/cordis.patch.yml`（未设置 DSH_HOME 时为
+`%USERPROFILE%/.dsh/profiles/web/cordis.patch.yml`）末尾添加下列配置；
+如果已有 `id: dsh-mobile-control` 覆盖项，修改该项，不要重复添加。保留文件里已有的其他配置。
 
-| 配置 | 本地示例 |
-| --- | --- |
-| enabled | true |
-| relayUrl | http://127.0.0.1:4090 |
-| mobileUrl | http://127.0.0.1:5173 |
+```yaml
+- id: dsh-mobile-control
+  config:
+    enabled: true
+    relayUrl: 'http://127.0.0.1:4090'
+    mobileUrl: 'http://127.0.0.1:5173'
+```
 
 部署后填入服务提供的 HTTPS origin。地址不能包含路径、查询、fragment 或用户名密码。
-Compose 部署的两个地址相同。
+Compose 和临时隧道部署的两个地址相同。使用其他 profile 时修改对应的 profile 文件。
+保存后由 DSH 的配置热重载生效；如果当前运行方式未启用热重载，等任务结束后重启。
 
-在电脑**本机已登录 DSH 的浏览器**点击“手机连接”，或访问相同端口下
-`/mobile-control`。注册电脑、选择共享工作区、生成二维码。
+在电脑**本机已登录 DSH 的浏览器**访问相同端口下的
+`/mobile-control`（例如 `http://127.0.0.1:3080/mobile-control`，可添加书签）。
+插件不在 DSH 页面叠加悬浮按钮，以免遮挡设置或其他控件。
+注册电脑、选择共享工作区、生成二维码。
 手机扫码后，比对两端校验码，在电脑确认配对。
 默认服务使用邀请码，自托管未限制注册时可留空。
 管理页使用 DSH 原生浏览器认证，只允许回环连接和同源写入。

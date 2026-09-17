@@ -1,6 +1,6 @@
 {
   "name": "dsh-mobile-control",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.2",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.19.0",
@@ -16,6 +16,7 @@
     "dev:relay": "pnpm --filter @dsh-mobile/relay dev",
     "dev:mobile": "pnpm --filter @dsh-mobile/mobile dev",
     "dev:demo": "tsx tests/demo-host.ts",
+    "test:entry": "node scripts/test-entry.mjs",
     "package": "pnpm build && node scripts/package.mjs"
   },
   "devDependencies": {

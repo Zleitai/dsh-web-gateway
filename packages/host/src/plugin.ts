@@ -28,7 +28,6 @@ interface PluginContext extends HarnessServices {
   connection: { requestRejection(request: IncomingMessage): number | undefined };
   webServer: {
     register(route: { kind: 'exact'; path: string; handler: (req: IncomingMessage, res: ServerResponse) => unknown }): () => void;
-    tapIndex(fn: (html: string) => string): () => void;
   };
   effect(fn: () => (() => void | Promise<void>), label?: string): unknown;
   on(event: string, listener: (this: unknown, request: ApprovalEvent, next: () => Promise<unknown>) => Promise<unknown>, options?: { prepend: boolean; global: boolean }): unknown;
@@ -144,6 +143,5 @@ export async function apply(ctx: PluginContext, config: PluginConfig): Promise<v
     } catch (error) { json(res, 400, { error: error instanceof Error && /^[A-Z_]+$/.test(error.message) ? error.message : '操作失败，请检查配置和输入' }); }
   };
   for (const path of ['/mobile-control', '/mobile-control/app.js', '/mobile-control/api']) ctx.effect(() => ctx.webServer.register({ kind: 'exact', path, handler }), 'mobile-control: admin route');
-  ctx.effect(() => ctx.webServer.tapIndex(html => html.replace('</body>', '<a href="/mobile-control" style="position:fixed;bottom:8px;left:8px;z-index:10000;padding:8px;background:#174c3d;color:white;border-radius:8px;font:14px system-ui">手机连接</a></body>')), 'mobile-control: admin entry');
   ctx.logger.info('Mobile Control management: /mobile-control (local authenticated browser only)');
 }
