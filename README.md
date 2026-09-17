@@ -51,8 +51,12 @@ pwsh -NoProfile -File scripts/windows/install-autostart.ps1 `
 查看任务和网关状态：
 
 ```powershell
+pnpm windows:start
 pnpm windows:status
 ```
+
+安装后首次使用、任务意外停止或不想重新登录 Windows 时，运行 `pnpm windows:start`。
+命令会等待 DSH 加载完成并确认本机健康端点可用，再报告启动成功。
 
 取消自动启动时保留配置和日志；添加 `-RemoveData` 才会一并删除它们：
 
