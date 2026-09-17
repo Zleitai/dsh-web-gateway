@@ -8,8 +8,8 @@ DeepSeek Harness Web 界面。
 
 ## 当前状态
 
-- 生产中的 `dsh.luisnode.com` 暂时继续使用旧网站代理，切换 V2 前不改动。
-- V2 正在独立测试地址 `dsh-v2.luisnode.com` 验收，尚未接管生产地址。
+- 生产入口在切换 V2 前继续使用旧网站代理，不做原地测试。
+- V2 先在独立测试 hostname 验收，通过后再接管生产入口。
 - 当前适配目标为 DSH `0.1.5-rc.1` 及其公开的 `--trusted-host` 接入方式。
 - 新版本会先在独立测试地址验收，再切换现有域名。
 
@@ -44,8 +44,8 @@ DSH 的签名 Cookie。DSH 启动凭据始终留在电脑内，不进入公网�
 
 ```powershell
 pwsh -NoProfile -File scripts/windows/install-autostart.ps1 `
-  -PublicOrigin https://dsh-v2.luisnode.com `
-  -Workspace C:\Users\Luis\Projects
+  -PublicOrigin https://dsh-v2.example.com `
+  -Workspace C:\Projects
 ```
 
 查看任务和网关状态：
