@@ -8,7 +8,7 @@ DeepSeek Harness Web 界面。
 
 ## 当前状态
 
-- V2 是唯一在用的远程入口，固定地址为 `https://dsh-v2.luisnode.com`。
+- V2 是唯一在用的远程入口，固定地址为 `https://dsh.luisnode.com`。
 - 原网站代理、开机启动脚本与独立手机 PWA 插件已经退役；源码只保留在 Git 历史分支中。
 - 当前适配目标为 DSH `0.1.5-rc.1` 及其公开的 `--trusted-host` 接入方式。
 - 新版本会先在独立测试地址验收，再切换现有域名。

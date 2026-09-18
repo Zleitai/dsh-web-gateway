@@ -46,7 +46,7 @@ pnpm start -- --public-origin https://<test-hostname> --workspace C:\<workspace>
 
 ```powershell
 pwsh -NoProfile -File scripts/windows/install-autostart.ps1 `
-  -PublicOrigin https://dsh-v2.luisnode.com `
+  -PublicOrigin https://dsh.luisnode.com `
   -Workspace C:\<workspace>
 ```
 

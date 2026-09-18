@@ -13,7 +13,7 @@
 
 1. `main` 提供连接器、受支持的 DSH 启动方式和移动增强层。
 2. V2 使用 `127.0.0.1:3090`，本机管理页使用 `127.0.0.1:3091`，内部原生 DSH 使用 `127.0.0.1:3092`。
-3. Cloudflare Access 与 Tunnel 只保留 `dsh-v2.luisnode.com`，上游指向 `http://127.0.0.1:3090`。
+3. Cloudflare Access 与 Tunnel 只保留 `dsh.luisnode.com`，上游指向 `http://127.0.0.1:3090`。
 4. Windows 计划任务 `DSH Web Gateway` 管理 V2；Cloudflared 继续由独立 Windows 服务管理。
 5. 旧代理的 `127.0.0.1:3088`、启动脚本和旧域名不再作为回退路径。
 
